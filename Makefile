@@ -25,6 +25,7 @@ help:
 	@echo "NPM Publishing:"
 	@echo "  npm-login           - Login to npm interactively"
 	@echo "  npm-token-generate  - Generate npm authentication token"
+	@echo "  npm-token-ci        - Generate npm token for CI/CD pipelines"
 	@echo "  npm-publish-interactive - Interactive npm publish with checks"
 	@echo "  npm-publish         - Direct npm publish"
 	@echo "  npm-version-patch   - Bump patch version and push tags"
@@ -106,6 +107,9 @@ npm-login:
 
 npm-token-generate:
 	./scripts/generate-token.sh
+
+npm-token-ci:
+	./scripts/setup-ci-token.sh
 
 npm-publish-interactive:
 	./scripts/publish.sh
