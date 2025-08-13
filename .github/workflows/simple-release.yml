@@ -1,0 +1,81 @@
+name: Simple Release
+
+on:
+  push:
+    tags:
+      - '*'  # Triggers on any tag
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Permission to create releases
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for changelog generation
+      
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get the previous tag for changelog generation
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ github.ref_name }}^ 2>/dev/null || echo "")
+          
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "Generating changelog from $PREVIOUS_TAG to ${{ github.ref_name }}"
+            # Get commits between tags, excluding the tag commit itself
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..HEAD )
+          else
+            echo "No previous tag found, using all commits"
+            # Get all commits except the current tag
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --reverse )
+          fi
+          
+          # Clean up empty lines and format properly
+          CHANGELOG=$(echo "$CHANGELOG" | grep -v '^$' | head -20)
+          
+          # Use GitHub Actions multiline output (no manual escaping needed)
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Store previous tag for comparison link
+          echo "previous_tag<<EOF" >> $GITHUB_OUTPUT
+          echo "$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            ## What's Changed in ${{ github.ref_name }}
+            
+            ### Changelog
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ---
+            
+            *Release created automatically from tag ${{ github.ref_name }}*
+            
+            ${{ steps.changelog.outputs.previous_tag && format('<p><a href="https://github.com/{0}/compare/{1}...{2}">See changes from {1} to {2}</a></p>', github.repository, steps.changelog.outputs.previous_tag, github.ref_name) || '' }}
+          draft: false
+          prerelease: false
+      
+      - name: Setup Node.js for NPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.18.0'
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Authenticate with NPM
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+      
+      - name: Publish to NPM
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

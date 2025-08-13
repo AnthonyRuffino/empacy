@@ -1,0 +1,351 @@
+#!/usr/bin/env node
+
+/**
+ * Empacy CLI - Command-line interface for the Multi-Agent MCP Server
+ * Provides access to Empacy functionality from the command line
+ */
+
+import { Command } from 'commander';
+import { logger } from '../src/utils/logger.js';
+
+const program = new Command();
+
+// Set up program information
+program
+  .name('empacy')
+  .description('Multi-Agent MCP Server for collaborative development')
+  .version('1.0.0');
+
+// Global options
+program
+  .option('-v, --verbose', 'Enable verbose logging')
+  .option('-q, --quiet', 'Suppress all logging')
+  .option('--log-level <level>', 'Set log level (error, warn, info, debug)', 'info');
+
+// Configure logging based on options
+program.hook('preAction', (thisCommand) => {
+  const options = thisCommand.opts();
+  
+  if (options.quiet) {
+    process.env.LOG_LEVEL = 'error';
+  } else if (options.verbose) {
+    process.env.LOG_LEVEL = 'debug';
+  } else if (options.logLevel) {
+    process.env.LOG_LEVEL = options.logLevel;
+  }
+});
+
+// Start MCP server command
+program
+  .command('start')
+  .description('Start the Empacy MCP server')
+  .option('-p, --port <port>', 'Port to listen on', '3000')
+  .option('--host <host>', 'Host to bind to', 'localhost')
+  .option('--stdio', 'Use stdio transport instead of HTTP')
+  .action(async (options) => {
+    try {
+      logger.info('Starting Empacy MCP server...');
+      
+      if (options.stdio) {
+        // Start with stdio transport
+        const { startStdioServer } = await import('../src/server-stdio.js');
+        await startStdioServer();
+      } else {
+        // Start with HTTP transport
+        const { startHttpServer } = await import('../src/server-http.js');
+        await startHttpServer(options.host, options.port);
+      }
+      
+      logger.info('Empacy MCP server started successfully');
+    } catch (error) {
+      logger.error('Failed to start Empacy MCP server:', error);
+      process.exit(1);
+    }
+  });
+
+// Agent management commands
+program
+  .command('agent')
+  .description('Manage Empacy agents')
+  .addCommand(
+    new Command('spawn')
+      .description('Spawn a new agent')
+      .argument('<role>', 'Agent role (cto, cto-assistant, principal-engineer, domain-director, project-manager)')
+      .option('-c, --context <files>', 'Context files to provide (comma-separated)')
+      .option('-p, --project <id>', 'Project ID for the agent')
+      .action(async (role, options) => {
+        try {
+          logger.info(`Spawning ${role} agent...`);
+          
+          const contextFiles = options.context ? options.context.split(',') : [];
+          const context = { projectId: options.project, contextFiles };
+          
+          const { spawnAgent } = await import('../src/agent-cli.js');
+          const result = await spawnAgent(role, context);
+          
+          console.log('Agent spawned successfully:', result);
+        } catch (error) {
+          logger.error(`Failed to spawn ${role} agent:`, error);
+          process.exit(1);
+        }
+      })
+  )
+  .addCommand(
+    new Command('list')
+      .description('List all agents')
+      .option('-r, --role <role>', 'Filter by agent role')
+      .action(async (options) => {
+        try {
+          const { listAgents } = await import('../src/agent-cli.js');
+          const agents = await listAgents(options.role);
+          
+          console.log('Active agents:');
+          agents.forEach(agent => {
+            console.log(`  ${agent.id} (${agent.role}) - ${agent.status}`);
+          });
+        } catch (error) {
+          logger.error('Failed to list agents:', error);
+          process.exit(1);
+        }
+      })
+  )
+  .addCommand(
+    new Command('status')
+      .description('Get agent status')
+      .argument('<id>', 'Agent ID')
+      .action(async (id) => {
+        try {
+          const { getAgentStatus } = await import('../src/agent-cli.js');
+          const status = await getAgentStatus(id);
+          
+          console.log('Agent status:', JSON.stringify(status, null, 2));
+        } catch (error) {
+          logger.error(`Failed to get status for agent ${id}:`, error);
+          process.exit(1);
+        }
+      })
+  );
+
+// Project management commands
+program
+  .command('project')
+  .description('Manage Empacy projects')
+  .addCommand(
+    new Command('create')
+      .description('Create a new project')
+      .argument('<name>', 'Project name')
+      .option('-d, --description <description>', 'Project description')
+      .option('--domains <domains>', 'Project domains (comma-separated)')
+      .action(async (name, options) => {
+        try {
+          logger.info(`Creating project: ${name}`);
+          
+          const description = options.description || `Project: ${name}`;
+          const domains = options.domains ? options.domains.split(',') : ['Default Domain'];
+          
+          const { createProject } = await import('../src/project-cli.js');
+          const result = await createProject(name, description, domains);
+          
+          console.log('Project created successfully:', result);
+        } catch (error) {
+          logger.error(`Failed to create project ${name}:`, error);
+          process.exit(1);
+        }
+      })
+  )
+  .addCommand(
+    new Command('list')
+      .description('List all projects')
+      .action(async () => {
+        try {
+          const { listProjects } = await import('../src/project-cli.js');
+          const projects = await listProjects();
+          
+          console.log('Projects:');
+          projects.forEach(project => {
+            console.log(`  ${project.id} - ${project.name} (${project.status})`);
+          });
+        } catch (error) {
+          logger.error('Failed to list projects:', error);
+          process.exit(1);
+        }
+      })
+  );
+
+// Ubiquitous language commands
+program
+  .command('language')
+  .description('Manage ubiquitous language')
+  .addCommand(
+    new Command('add')
+      .description('Add a new concept to ubiquitous language')
+      .argument('<name>', 'Concept name')
+      .argument('<domain>', 'Concept domain')
+      .argument('<definition>', 'Concept definition')
+      .option('-s, --short-name <short>', 'Short name/acronym')
+      .option('--synonyms <synonyms>', 'Synonyms (comma-separated)')
+      .action(async (name, domain, definition, options) => {
+        try {
+          logger.info(`Adding concept: ${name}`);
+          
+          const concept = {
+            name,
+            domain,
+            definition,
+            shortName: options.shortName,
+            synonyms: options.synonyms ? options.synonyms.split(',') : [],
+          };
+          
+          const { addConcept } = await import('../src/language-cli.js');
+          const result = await addConcept(concept);
+          
+          console.log('Concept added successfully:', result);
+        } catch (error) {
+          logger.error(`Failed to add concept ${name}:`, error);
+          process.exit(1);
+        }
+      })
+  )
+  .addCommand(
+    new Command('search')
+      .description('Search concepts in ubiquitous language')
+      .argument('<query>', 'Search query')
+      .option('-d, --domain <domain>', 'Filter by domain')
+      .option('-l, --limit <limit>', 'Limit results', '10')
+      .action(async (query, options) => {
+        try {
+          const { searchConcepts } = await import('../src/language-cli.js');
+          const results = await searchConcepts(query, {
+            domain: options.domain,
+            limit: parseInt(options.limit),
+          });
+          
+          console.log(`Search results for "${query}":`);
+          results.forEach(concept => {
+            console.log(`  ${concept.name} (${concept.shortName}) - ${concept.domain}`);
+            console.log(`    ${concept.definition}`);
+          });
+        } catch (error) {
+          logger.error(`Failed to search concepts:`, error);
+          process.exit(1);
+        }
+      })
+  )
+  .addCommand(
+    new Command('export')
+      .description('Export ubiquitous language to YAML')
+      .option('-o, --output <file>', 'Output file path')
+      .action(async (options) => {
+        try {
+          const { exportLanguage } = await import('../src/language-cli.js');
+          const yaml = await exportLanguage();
+          
+          if (options.output) {
+            const fs = await import('fs/promises');
+            await fs.writeFile(options.output, yaml, 'utf8');
+            console.log(`Ubiquitous language exported to: ${options.output}`);
+          } else {
+            console.log(yaml);
+          }
+        } catch (error) {
+          logger.error('Failed to export ubiquitous language:', error);
+          process.exit(1);
+        }
+      })
+  );
+
+// Configuration commands
+program
+  .command('config')
+  .description('Manage Empacy configuration')
+  .addCommand(
+    new Command('show')
+      .description('Show current configuration')
+      .action(async () => {
+        try {
+          const { showConfig } = await import('../src/config-cli.js');
+          const config = await showConfig();
+          
+          console.log('Current configuration:', JSON.stringify(config, null, 2));
+        } catch (error) {
+          logger.error('Failed to show configuration:', error);
+          process.exit(1);
+        }
+      })
+  )
+  .addCommand(
+    new Command('validate')
+      .description('Validate configuration')
+      .action(async () => {
+        try {
+          const { validateConfig } = await import('../src/config-cli.js');
+          const result = await validateConfig();
+          
+          if (result.valid) {
+            console.log('Configuration is valid');
+          } else {
+            console.log('Configuration validation failed:');
+            result.errors.forEach(error => console.log(`  - ${error}`));
+            process.exit(1);
+          }
+        } catch (error) {
+          logger.error('Failed to validate configuration:', error);
+          process.exit(1);
+        }
+      })
+  );
+
+// Health check command
+program
+  .command('health')
+  .description('Check system health')
+  .action(async () => {
+    try {
+      const { checkHealth } = await import('../src/health-cli.js');
+      const health = await checkHealth();
+      
+      console.log('System health:', JSON.stringify(health, null, 2));
+      
+      if (!health.healthy) {
+        process.exit(1);
+      }
+    } catch (error) {
+      logger.error('Failed to check system health:', error);
+      process.exit(1);
+    }
+  });
+
+// Help command
+program
+  .command('help')
+  .description('Show detailed help')
+  .action(() => {
+    program.help();
+  });
+
+// Error handling
+program.exitOverride();
+
+try {
+  program.parse();
+} catch (err) {
+  if (err.code === 'commander.help') {
+    // Help was displayed, exit normally
+    process.exit(0);
+  } else {
+    // Unexpected error
+    logger.error('Unexpected error:', err);
+    process.exit(1);
+  }
+}
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});

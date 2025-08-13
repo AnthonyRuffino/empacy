@@ -1,0 +1,96 @@
+domains:
+  - name: "Multi-Agent MCP Server"
+    short-name: "MAMS"
+    definition: "Core system that enables multiple AI agents to be spawned in parallel by a central AI agent"
+    
+  - name: "Central Agent"
+    short-name: "CA"
+    definition: "The primary orchestrator agent (CTO) that manages all other agents and maintains project context"
+    
+  - name: "CTO-Assistant"
+    short-name: "CTA"
+    definition: "Agent responsible for content refinement, ubiquitous language management, and prompt summarization"
+    
+  - name: "Principal Engineer"
+    short-name: "PE"
+    definition: "Technical architect responsible for infrastructure setup, codebase analysis, and technical decisions"
+    
+  - name: "Domain Director"
+    short-name: "DD"
+    definition: "Agent responsible for domain-specific planning, task breakdown, and implementation phases"
+    
+  - name: "Project Manager"
+    short-name: "PM"
+    definition: "Agent responsible for task scheduling, dependency management, and project timeline coordination"
+    
+  - name: "Senior Developer"
+    short-name: "SD"
+    definition: "Implementation agent that receives context digests and executes detailed tasks"
+    
+  - name: "Ubiquitous Language"
+    short-name: "UL"
+    definition: "Centralized terminology system that maintains domain concepts, acronyms, and definitions to reduce context overhead"
+    
+  - name: "Context Digest"
+    short-name: "CD"
+    definition: "Condensed context information provided to agents to ensure they have necessary information without full context overhead"
+    
+  - name: "Context Distribution"
+    short-name: "CDist"
+    definition: "Process of sharing relevant context files and information from CTO to direct report agents"
+    
+  - name: "File Isolation"
+    short-name: "FI"
+    definition: "Principle that all files created by agents remain within designated project directories"
+    
+  - name: "Quality Gates"
+    short-name: "QG"
+    definition: "Automated checks for code quality, testing coverage, and style enforcement"
+    
+  - name: "CI/CD Pipeline"
+    short-name: "CICD"
+    definition: "Continuous Integration and Continuous Deployment pipeline with automated testing, building, and deployment"
+    
+  - name: "Observability Tools"
+    short-name: "OT"
+    definition: "Monitoring, logging, and performance tracking tools for system health and debugging"
+    
+  - name: "PlantUML Architecture"
+    short-name: "PUA"
+    definition: "Visual architecture diagrams created using PlantUML for technical documentation and planning"
+    
+  - name: "Merge Conflict Planning"
+    short-name: "MCP"
+    definition: "Strategic planning to avoid and manage potential merge conflicts in feature branch development"
+    
+  - name: "Technology Stack"
+    short-name: "TS"
+    definition: "Collection of technologies, frameworks, and tools chosen for project implementation"
+    
+  - name: "Domain Architecture"
+    short-name: "DA"
+    definition: "Structural design and relationships between different business domains in the system"
+    
+  - name: "Milestone Planning"
+    short-name: "MP"
+    definition: "Abstract steps and goals defined for each domain to accomplish the overall initiative"
+    
+  - name: "Phase-by-Phase Implementation"
+    short-name: "PPI"
+    definition: "Detailed breakdown of work into sequential phases with specific tasks and deliverables"
+    
+  - name: "Context Preservation"
+    short-name: "CP"
+    definition: "Maintenance of full user prompt context in CTO while providing efficient summaries to other agents"
+    
+  - name: "Meaning-Preserving Summarization"
+    short-name: "MPS"
+    definition: "Process of condensing information while ensuring no semantic meaning is lost"
+    
+  - name: "Resource Isolation"
+    short-name: "RI"
+    definition: "Separation of resources and file access between different agents for security and organization"
+    
+  - name: "Parallel Agent Execution"
+    short-name: "PAE"
+    definition: "Ability to run multiple agents simultaneously to improve project efficiency and reduce time to completion"
