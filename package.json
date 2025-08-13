@@ -37,7 +37,7 @@
     "format": "prettier --write src/",
     "format:check": "prettier --check src/",
     "build": "echo 'No build step needed for Node.js project'",
-    "prepare": "husky install",
+    "prepare": "node -e \"if (require('fs').existsSync('node_modules/.bin/husky')) { require('child_process').execSync('husky install', {stdio: 'inherit'}) }\"",
     "pre-commit": "lint-staged",
     "docker:build": "docker build -t empacy .",
     "docker:run": "docker run -p 3000:3000 empacy",
