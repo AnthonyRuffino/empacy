@@ -22,6 +22,18 @@ help:
 	@echo "  docker-run   - Run Docker container"
 	@echo "  docker-test  - Run tests in Docker"
 	@echo ""
+	@echo "NPM Publishing:"
+	@echo "  npm:login           - Login to npm interactively"
+	@echo "  npm:token:generate  - Generate npm authentication token"
+	@echo "  npm:publish:interactive - Interactive npm publish with checks"
+	@echo "  npm:publish         - Direct npm publish"
+	@echo "  npm:version:patch   - Bump patch version and push tags"
+	@echo "  npm:version:minor   - Bump minor version and push tags"
+	@echo "  npm:version:major   - Bump major version and push tags"
+	@echo "  npm:release:patch   - Bump patch version and publish"
+	@echo "  npm:release:minor   - Bump minor version and publish"
+	@echo "  npm:release:major   - Bump major version and publish"
+	@echo ""
 	@echo "Setup:"
 	@echo "  setup-dev    - Setup development environment"
 	@echo "  setup-ci     - Setup CI environment"
@@ -87,6 +99,35 @@ git:commit:
 git:tag:
 	git tag -a v$(version) -m "Release $(version)"
 	git push origin v$(version)
+
+# NPM Publishing
+npm:login:
+	npm login
+
+npm:token:generate:
+	./scripts/generate-token.sh
+
+npm:publish:interactive:
+	./scripts/publish.sh
+
+npm:publish:
+	npm publish
+
+npm:version:patch:
+	npm version patch
+	git push --follow-tags
+
+npm:version:minor:
+	npm version minor
+	git push --follow-tags
+
+npm:version:major:
+	npm version major
+	git push --follow-tags
+
+npm:release:patch: npm:version:patch npm:publish
+npm:release:minor: npm:version:minor npm:publish
+npm:release:major: npm:version:major npm:publish
 
 # Quality checks
 quality:check:
