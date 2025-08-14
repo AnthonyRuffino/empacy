@@ -1,6 +1,6 @@
 {
   "name": "empacy",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Multi-Agent MCP Server - Enables multiple AI agents to collaborate on complex development projects through hierarchical organization",
   "type": "module",
   "main": "./src/index.js",
