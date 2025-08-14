@@ -14,7 +14,7 @@ const program = new Command();
 program
   .name('empacy')
   .description('Multi-Agent MCP Server for collaborative development')
-  .version('1.0.3');
+  .version('1.0.5');
 
 // Global options
 program
