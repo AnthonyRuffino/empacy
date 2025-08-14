@@ -25,15 +25,7 @@ export async function startStdioServer() {
       "empacy.spawnAgent",
       {
         title: "Spawn Agent",
-        description: "Spawn a new agent with specified role and context",
-        inputSchema: {
-          type: "object",
-          properties: {
-            role: { type: "string" },
-            context: { type: "object" }
-          },
-          required: ["role"]
-        }
+        description: "Spawn a new agent with specified role and context"
       },
       async (args) => {
         logger.info(`Spawning agent with role: ${args.role}`);
@@ -73,16 +65,7 @@ export async function startStdioServer() {
       "empacy.createProject",
       {
         title: "Create Project",
-        description: "Create a new project with specified name, description, and domains",
-        inputSchema: {
-          type: "object",
-          properties: {
-            name: { type: "string" },
-            description: { type: "string" },
-            domains: { type: "array" }
-          },
-          required: ["name"]
-        }
+        description: "Create a new project with specified name, description, and domains"
       },
       async (args) => {
         logger.info(`Creating project: ${args.name}`);
@@ -122,14 +105,7 @@ export async function startStdioServer() {
       "empacy.updateUbiquitousLanguage",
       {
         title: "Update Ubiquitous Language",
-        description: "Update ubiquitous language concepts",
-        inputSchema: {
-          type: "object",
-          properties: {
-            concepts: { type: "array" }
-          },
-          required: ["concepts"]
-        }
+        description: "Update ubiquitous language concepts"
       },
       async (args) => {
         logger.info('Updating ubiquitous language');
@@ -141,7 +117,7 @@ export async function startStdioServer() {
               type: "text", 
               text: JSON.stringify({
                 success: true,
-                conceptsCount: args.concepts.length,
+                conceptsCount: args.concepts ? args.concepts.length : 0,
                 status: 'language_updated'
               }, null, 2)
             }] 

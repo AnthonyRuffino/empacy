@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "empacy": {
-      "command": "empacy",
-      "args": ["start"],
+      "command": "npx",
+      "args": ["-y", "empacy", "start"],
       "env": {}
     }
   }
