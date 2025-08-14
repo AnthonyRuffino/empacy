@@ -14,7 +14,7 @@ const program = new Command();
 program
   .name('empacy')
   .description('Multi-Agent MCP Server for collaborative development')
-  .version('1.0.0');
+  .version('1.0.3');
 
 // Global options
 program
@@ -42,9 +42,14 @@ program
   .option('-p, --port <port>', 'Port to listen on', '3000')
   .option('--host <host>', 'Host to bind to', 'localhost')
   .option('--stdio', 'Use stdio transport instead of HTTP')
+  .option('--daemon', 'Run in background (not yet implemented)')
   .action(async (options) => {
     try {
       logger.info('Starting Empacy MCP server...');
+      
+      if (options.daemon) {
+        logger.warn('Daemon mode not yet implemented, running in foreground');
+      }
       
       if (options.stdio) {
         // Start with stdio transport
