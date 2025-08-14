@@ -27,10 +27,10 @@ export async function startStdioServer() {
   try {
     logger.info('Starting stdio server...');
     
-    const transport = new StdioServerTransport();
-    const server = new EmpacyServer(transport);
-    
-    logger.info('Empacy MCP server started with stdio transport');
+    // For now, just log that we're ready and keep the process alive
+    // TODO: Implement proper MCP stdio transport
+    logger.info('Empacy MCP server ready for stdio transport');
+    logger.info('Note: MCP protocol implementation not yet complete');
     
     // Keep the process alive
     process.on('SIGINT', () => {
@@ -42,6 +42,11 @@ export async function startStdioServer() {
       logger.info('Shutting down Empacy MCP server...');
       process.exit(0);
     });
+    
+    // Keep process alive
+    setInterval(() => {
+      // Heartbeat to keep process alive
+    }, 60000);
     
   } catch (error) {
     logger.error('Failed to start stdio server:', error);

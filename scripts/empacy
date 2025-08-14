@@ -328,20 +328,24 @@ program
     program.help();
   });
 
-// Error handling
-program.exitOverride();
+// Add help text for the main program
+program.addHelpText('after', `
 
+Examples:
+  $ empacy start --stdio
+  $ empacy start --port 5000
+  $ empacy agent spawn cto
+  $ empacy config show
+  $ empacy health
+`);
+
+// Parse command line arguments
 try {
   program.parse();
 } catch (err) {
-  if (err.code === 'commander.help') {
-    // Help was displayed, exit normally
-    process.exit(0);
-  } else {
-    // Unexpected error
-    logger.error('Unexpected error:', err);
-    process.exit(1);
-  }
+  // Unexpected error
+  logger.error('Unexpected error:', err);
+  process.exit(1);
 }
 
 // Handle uncaught exceptions

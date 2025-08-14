@@ -691,7 +691,7 @@ Add progress notes and updates here.
 [To be defined based on task requirements]
 `;
   }
-}
+
 
 
   /**
@@ -868,6 +868,263 @@ This domain has been completed successfully. The Project Manager should review t
     // Create release directory
     const releaseDir = `./projects/${projectId}/releases/${version}`;
     await fs.mkdir(releaseDir, { recursive: true });
+    
+    // Write release notes
+    const releaseNotes = this.generateReleaseNotes(release);
+    await fs.writeFile(path.join(releaseDir, 'release-notes.md'), releaseNotes);
+    
+    // Write release manifest
+    const manifest = this.generateReleaseManifest(release);
+    await fs.writeFile(path.join(releaseDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
+    
+    logger.info(`Release ${version} created for project: ${projectId}`);
+    return release;
+  }
+
+  /**
+   * Generate release notes
+   */
+  generateReleaseNotes(release) {
+    return `# Release Notes - ${release.version}
+
+## Project ID: ${release.projectId}
+
+## Release Information
+
+- **Version**: ${release.version}
+- **Created**: ${release.createdAt}
+- **Status**: ${release.status}
+
+## Description
+
+${release.description}
+
+## Artifacts Included
+
+${release.artifacts.map(artifact => `- **${artifact.name}**
+  - Type: ${artifact.type}
+  - Path: ${artifact.path}
+  - Version: ${artifact.version || 'N/A'}`).join('\n\n')}
+
+## Changes in This Release
+
+[To be filled in by development team]
+
+## Known Issues
+
+[To be filled in by QA team]
+
+## Installation Instructions
+
+[To be filled in by DevOps team]
+
+## Rollback Plan
+
+[To be filled in by DevOps team]
+`;
+  }
+
+  /**
+   * Generate release manifest
+   */
+  generateReleaseManifest(release) {
+    return {
+      releaseId: release.id,
+      projectId: release.projectId,
+      version: release.version,
+      description: release.description,
+      createdAt: release.createdAt,
+      status: release.status,
+      artifacts: release.artifacts.map(artifact => ({
+        name: artifact.name,
+        type: artifact.type,
+        path: artifact.path,
+        version: artifact.version,
+        checksum: artifact.checksum || null
+      })),
+      metadata: {
+        generatedBy: 'Empacy MCP Server',
+        generatorVersion: '1.0.0',
+        timestamp: new Date().toISOString()
+      }
+    };
+  }
+
+
+  /**
+   * Get project state and status
+   */
+  async getProjectState(projectId) {
+    logger.info(`Getting project state: ${projectId}`);
+    
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    
+    try {
+      // Try to read project config
+      const projectConfigPath = `./projects/${projectId}/project-config.json`;
+      const projectConfig = JSON.parse(await fs.readFile(projectConfigPath, 'utf8'));
+      
+      // Get domain statuses
+      const domains = [];
+      for (const domain of projectConfig.domains) {
+        const domainDir = `./projects/${projectId}/domains/${domain}`;
+        try {
+          const domainFiles = await fs.readdir(domainDir);
+          const hasPhases = domainFiles.includes('phases');
+          const hasImplementation = domainFiles.includes('implementation');
+          
+          domains.push({
+            name: domain,
+            hasPhases: hasPhases,
+            hasImplementation: hasImplementation,
+            status: hasImplementation ? 'implemented' : hasPhases ? 'planned' : 'pending'
+          });
+        } catch (error) {
+          domains.push({
+            name: domain,
+            hasPhases: false,
+            hasImplementation: false,
+            status: 'pending'
+          });
+        }
+      }
+      
+      // Check for project schedule
+      let schedule = null;
+      try {
+        const schedulePath = `./projects/${projectId}/project-schedule.md`;
+        const scheduleContent = await fs.readFile(schedulePath, 'utf8');
+        schedule = { exists: true, path: schedulePath };
+      } catch (error) {
+        schedule = { exists: false };
+      }
+      
+      return {
+        projectId,
+        config: projectConfig,
+        domains,
+        schedule,
+        overallStatus: this.calculateOverallStatus(domains),
+        lastUpdated: new Date().toISOString()
+      };
+    } catch (error) {
+      logger.error(`Failed to get project state: ${error.message}`);
+      throw new Error(`Project not found or invalid: ${projectId}`);
+    }
+  }
+
+  /**
+   * Calculate overall project status
+   */
+  calculateOverallStatus(domains) {
+    if (domains.length === 0) return 'pending';
+    
+    const statuses = domains.map(d => d.status);
+    if (statuses.every(s => s === 'implemented')) return 'completed';
+    if (statuses.some(s => s === 'implemented')) return 'in-progress';
+    if (statuses.every(s => s === 'planned')) return 'planned';
+    return 'pending';
+  }
+
+  /**
+   * Mark domain as complete
+   */
+  async markDomainComplete(domain, projectId, completionData) {
+    logger.info(`Marking domain complete: ${domain} in project: ${projectId}`);
+    
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    
+    // Create completion report
+    const completionReport = {
+      domain,
+      projectId,
+      completedAt: new Date().toISOString(),
+      completionData,
+      artifacts: completionData.artifacts || [],
+      notes: completionData.notes || '',
+      qualityMetrics: completionData.qualityMetrics || {}
+    };
+    
+    // Write completion report
+    const reportPath = `./projects/${projectId}/domains/${domain}/completion-report.md`;
+    const reportContent = this.generateCompletionReport(completionReport);
+    await fs.writeFile(reportPath, reportContent, 'utf8');
+    
+    // Update domain status
+    const statusPath = `./projects/${projectId}/domains/${domain}/status.json`;
+    const status = {
+      domain,
+      projectId,
+      status: 'completed',
+      completedAt: completionReport.completedAt,
+      lastUpdated: new Date().toISOString()
+    };
+    await fs.writeFile(statusPath, JSON.stringify(status, null, 2));
+    
+    logger.info(`Domain ${domain} marked complete in project: ${projectId}`);
+    return completionReport;
+  }
+
+  /**
+   * Generate completion report
+   */
+  generateCompletionReport(report) {
+    return `# Domain Completion Report
+
+## Domain: ${report.domain}
+
+## Project ID: ${report.projectId}
+
+## Completion Details
+
+- **Completed At**: ${report.completedAt}
+- **Status**: Completed
+
+## Artifacts Delivered
+
+${report.artifacts.map(artifact => `- **${artifact.name}**
+  - Type: ${artifact.type}
+  - Path: ${artifact.path}
+  - Description: ${artifact.description}`).join('\n\n')}
+
+## Quality Metrics
+
+${Object.entries(report.qualityMetrics).map(([metric, value]) => `- **${metric}**: ${value}`).join('\n')}
+
+## Notes
+
+${report.notes}
+
+## Next Steps
+
+This domain has been completed successfully. The Project Manager should review the artifacts and proceed with the next phase or project completion.
+`;
+  }
+
+  /**
+   * Create project release
+   */
+  async createRelease(projectId, version, description, artifacts) {
+    logger.info(`Creating release: ${version} for project: ${projectId}`);
+    
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    
+    const release = {
+      id: `release_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      projectId,
+      version,
+      description,
+      artifacts,
+      createdAt: new Date().toISOString(),
+      status: 'created'
+    };
+    
+    // Create release directory
+    const releaseDir = `./projects/${projectId}/releases/${version}`;
+    await fs.readFile(releaseDir, 'utf8');
     
     // Write release notes
     const releaseNotes = this.generateReleaseNotes(release);
