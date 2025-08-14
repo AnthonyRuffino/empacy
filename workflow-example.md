@@ -43,11 +43,9 @@ docker-compose up -d
 {
   "mcpServers": {
     "empacy": {
-      "command": "npx",
-      "args": ["-y", "empacy"],
-      "env": {
-        "MCP_SERVER_URL": "http://localhost:5000"
-      }
+      "command": "empacy",
+      "args": ["start", "--stdio"],
+      "env": {}
     }
   }
 }
@@ -59,11 +57,9 @@ docker-compose up -d
 {
   "mcp.servers": {
     "empacy": {
-      "command": "npx",
-      "args": ["-y", "empacy"],
-      "env": {
-        "MCP_SERVER_URL": "http://localhost:5000"
-      }
+      "command": "empacy",
+      "args": ["start", "--stdio"],
+      "env": {}
     }
   }
 }
@@ -76,11 +72,9 @@ docker-compose up -d
   "mcp": {
     "servers": {
       "empacy": {
-        "command": "npx",
-        "args": ["-y", "empacy"],
-        "env": {
-          "MCP_SERVER_URL": "http://localhost:5000"
-        }
+        "command": "empacy",
+        "args": ["start", "--stdio"],
+        "env": {}
       }
     }
   }

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "empacy": {
+      "command": "empacy",
+      "args": ["start"],
+      "env": {}
+    }
+  }
+}

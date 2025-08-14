@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "empacy": {
+      "command": "nc",
+      "args": ["localhost", "5000"],
+      "env": {}
+    }
+  }
+}

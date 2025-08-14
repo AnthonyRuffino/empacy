@@ -185,17 +185,17 @@ program
     new Command('add')
       .description('Add a new concept to ubiquitous language')
       .argument('<name>', 'Concept name')
-      .argument('<domain>', 'Concept domain')
       .argument('<definition>', 'Concept definition')
+      .option('-d, --domain <domain>', 'Concept domain', 'general')
       .option('-s, --short-name <short>', 'Short name/acronym')
       .option('--synonyms <synonyms>', 'Synonyms (comma-separated)')
-      .action(async (name, domain, definition, options) => {
+      .action(async (name, definition, options) => {
         try {
           logger.info(`Adding concept: ${name}`);
           
           const concept = {
             name,
-            domain,
+            domain: options.domain,
             definition,
             shortName: options.shortName,
             synonyms: options.synonyms ? options.synonyms.split(',') : [],

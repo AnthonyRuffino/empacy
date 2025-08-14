@@ -39,3 +39,4 @@ export async function validateConfig() {
     warnings: ['Configuration validation not yet implemented']
   };
 }
+
