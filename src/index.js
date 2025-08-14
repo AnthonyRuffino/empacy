@@ -26,21 +26,10 @@ server.registerTool(
     inputSchema: {
       type: "object",
       properties: {
-        role: { type: "string", minLength: 1 },
-        context: {
-          type: "object",
-          properties: {
-            projectId: { type: "string" },
-            contextFiles: { 
-              type: "array", 
-              items: { type: "string" } 
-            }
-          },
-          additionalProperties: false
-        }
+        role: { type: "string" },
+        context: { type: "object" }
       },
-      required: ["role"],
-      additionalProperties: false
+      required: ["role"]
     }
   },
   async (args) => {
@@ -85,15 +74,11 @@ server.registerTool(
     inputSchema: {
       type: "object",
       properties: {
-        name: { type: "string", minLength: 1 },
+        name: { type: "string" },
         description: { type: "string" },
-        domains: { 
-          type: "array", 
-          items: { type: "string" } 
-        }
+        domains: { type: "array" }
       },
-      required: ["name"],
-      additionalProperties: false
+      required: ["name"]
     }
   },
   async (args) => {
@@ -138,23 +123,9 @@ server.registerTool(
     inputSchema: {
       type: "object",
       properties: {
-        concepts: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              name: { type: "string" },
-              shortName: { type: "string" },
-              definition: { type: "string" },
-              domain: { type: "string" }
-            },
-            required: ["name", "definition", "domain"],
-            additionalProperties: false
-          }
-        }
+        concepts: { type: "array" }
       },
-      required: ["concepts"],
-      additionalProperties: false
+      required: ["concepts"]
     }
   },
   async (args) => {
