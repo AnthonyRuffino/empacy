@@ -1,0 +1,6 @@
+@startuml empacy-agent-workflow
+!theme plain
+actor User
+participant CTO
+User -> CTO: User Prompt
+@enduml

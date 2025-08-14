@@ -1,0 +1,6 @@
+@startuml empacy-data-flow
+!theme plain
+package "Input Layer" {
+  [User Prompt] as Prompt
+}
+@enduml

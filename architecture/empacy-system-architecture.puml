@@ -1,0 +1,6 @@
+@startuml empacy-system-architecture
+!theme plain
+package "Empacy MCP Server" {
+  [EmpacyServer] as Server
+}
+@enduml
